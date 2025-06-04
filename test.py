@@ -109,7 +109,7 @@ def AdjacentElements(i, j):
                 
     return empty_tiles, empty_tiles_coordinates, flags
 
-def Click(empty_tiles_coordinates, click):
+def Click(empty_tiles_coordinates, click, simulate):
     for current_coordinates in empty_tiles_coordinates:
         coord_tuple = (current_coordinates[0], current_coordinates[1])
         
@@ -123,25 +123,27 @@ def Click(empty_tiles_coordinates, click):
             print("Click:", x, y)
             pyautogui.moveTo(x, y)
             if click == "right":
-                pyautogui.rightClick()
                 tiles[coord_tuple[0]][coord_tuple[1]] = FLAGGED
+                if not simulate:
+                    pyautogui.rightClick()
                 return 1
             elif click == "left":
-                pyautogui.leftClick()
                 tiles[coord_tuple[0]][coord_tuple[1]] = REVEALED
+                if not simulate:
+                    pyautogui.leftClick()
                 return 1
     return 0
 
 
-def ProcessTile(i, j, number):
+def ProcessTile(i, j, number, simulate=False):
     empty_tiles, empty_tiles_coordinates, flags = AdjacentElements(i, j)
 
     if flags == number:
-        return Click(empty_tiles_coordinates, "left")
+        return Click(empty_tiles_coordinates, "left", simulate)
     if empty_tiles == number and flags == 0:
-        return Click(empty_tiles_coordinates, "right")
+        return Click(empty_tiles_coordinates, "right", simulate)
     elif empty_tiles + flags == number:
-        return Click(empty_tiles_coordinates, "right")
+        return Click(empty_tiles_coordinates, "right", simulate)
     else:
         return 0
     
@@ -152,13 +154,17 @@ def FrontierArray():
         for j in range(Y_GRID_SIZE):
             number = tiles[i][j]
             if number not in [UNKNOWN, FLAG, REVEALED]:
-                x = i * BOX_SIZE
-                y = i * BOX_SIZE
+                x = i
+                y = j
                 empty_tiles, empty_tiles_coordinates, flags = AdjacentElements(i, j)
                 if empty_tiles != 0:
-                    frontier.append({"type":number, "x": x, "y": y})
+                    frontier.append({"type": number, "x": x, "y": y})
     print(len(frontier))
-    exit()
+    return frontier
+
+def Simulate(frontier):
+    for front in range(len(frontier)):
+        ProcessTile(front["x"], front["y"], front["number"], True)  
 
 def __main__():
     TakeImage()
