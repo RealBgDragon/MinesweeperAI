@@ -3,46 +3,52 @@ import keyboard
 from PIL import Image
 import time
 import random
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
-X_START = 313
-Y_START = 252
-WIDTH = 600
-HEIGHT = 320
+X_START = int(os.getenv("X_START"))
+Y_START = int(os.getenv("Y_START"))
+WIDTH = int(os.getenv("WIDTH"))
+HEIGHT = int(os.getenv("HEIGHT"))
 
-X_GRID_SIZE = 30
-Y_GRID_SIZE = 16
-BOX_SIZE = 20
+X_GRID_SIZE = int(os.getenv("X_GRID_SIZE"))
+Y_GRID_SIZE = int(os.getenv("Y_GRID_SIZE"))
+BOX_SIZE = int(os.getenv("BOX_SIZE"))
+NUMBER_WIDTH = int(os.getenv("NUMBER_WIDTH"))
+NUMBER_HEIGHT = int(os.getenv("NUMBER_HEIGHT"))
 
-CLICKED = (155, 155, 155)
-NOT_CLICKED = (255, 255, 255)
+def get_color(name):
+    return tuple(map(int, os.getenv(name).split(',')))
 
-ONE = (0, 0, 255)
-TWO = (0, 123, 0)
-THREE = (255, 0, 0)
-FOUR = (0, 0, 123)
-MINE = (0, 0, 0)
+CLICKED = get_color("CLICKED")
+NOT_CLICKED = get_color("NOT_CLICKED")
 
-SIX = (0, 123, 123)
+ONE = get_color("ONE")
+TWO = get_color("TWO")
+THREE = get_color("THREE")
+FOUR = get_color("FOUR")
+FIVE = get_color("FIVE")
+SIX = get_color("SIX")
 
+MINE = get_color("MINE")
 moves = 0
 
 tiles = [[0 for _ in range(Y_GRID_SIZE)] for _ in range(X_GRID_SIZE)]
 clicked_coordinates = []
 # coordinates = [[0 for _ in range(Y_GRID_SIZE)] for _ in range(X_GRID_SIZE)]
 
-def TakeIamge():
+def TakeImage():
     # Rectangle: left-X, top-Y, width, height
     box = (X_START, Y_START, WIDTH, HEIGHT)
     img = pyautogui.screenshot(region=box)
-
-
 
     for i in range(X_GRID_SIZE):
         for j in range(Y_GRID_SIZE):
             pixel = img.getpixel((i*BOX_SIZE + 1, j*BOX_SIZE + 1))
             # print("Pos: ", i*BOX_SIZE + 1, j*BOX_SIZE + 1)
-            number = img.getpixel((i*BOX_SIZE + 13, j*BOX_SIZE + 15))
+            number = img.getpixel((i*BOX_SIZE + NUMBER_WIDTH, j*BOX_SIZE + NUMBER_HEIGHT))
             if pixel == NOT_CLICKED:
                 # print("Not clicked")
                 if number == MINE:
@@ -51,8 +57,8 @@ def TakeIamge():
                     tiles[i][j] = 0
                     
             elif pixel == CLICKED:
-                # print("Pos: ", i*BOX_SIZE + 13, j*BOX_SIZE + 15)
-                # print("Clicked")
+                # print("Pos: ", i*BOX_SIZE + NUMBER_WIDTH, j*BOX_SIZE + NUMBER_HEIGHT)
+                # print(number)
                 if number == ONE:
                     tiles[i][j] = 1
                 elif number == TWO:
@@ -63,78 +69,16 @@ def TakeIamge():
                     tiles[i][j] = 4
                 else:
                     tiles[i][j] = 10
-                    
                                 
 def MakeMove():
     # for i in range(len(tiles)):
     #     print(tiles[i])
+    
     for i in range(X_GRID_SIZE):
         for j in range(Y_GRID_SIZE):
-            empty_tiles = 0
-            empty_tiles_coordinates = []
-            flags = 0
-            # check if the tile is a 1
-            if tiles[i][j] == 1:
-                # run trough each element next to the current
-                empty_tiles, empty_tiles_coordinates, flags = AdjacentElements(i, j)
-                                
-                if flags == 1:
-                    Click(empty_tiles_coordinates, "left")
-                
-                if empty_tiles == 1:
-                    Click(empty_tiles_coordinates, "right")
-            
-            # check if the tile is a 2
-            elif tiles[i][j] == 2:
-                # run trough each element next to the current
-                empty_tiles, empty_tiles_coordinates, flags = AdjacentElements(i, j)
-                
-                if flags == 2:
-                    Click(empty_tiles_coordinates, "left")
-                
-                if empty_tiles == 2 and flags == 0:
-                    print("Empty tiles: ", empty_tiles, "and flags: ", flags)
-                    Click(empty_tiles_coordinates, "right")
-                elif empty_tiles == 1 and flags == 1:
-                    print("Empty tiles: ", empty_tiles, "and flags: ", flags)
-                    Click(empty_tiles_coordinates, "right")
-                    
-            elif tiles[i][j] == 3:
-                # run trough each element next to the current
-                empty_tiles, empty_tiles_coordinates, flags = AdjacentElements(i, j)
-                
-                if flags == 3:
-                    Click(empty_tiles_coordinates, "left")
-                
-                if empty_tiles == 3 and flags == 0:
-                    print("Empty tiles: ", empty_tiles, "and flags: ", flags)
-                    Click(empty_tiles_coordinates, "right")
-                elif empty_tiles == 2 and flags == 1:
-                    print("Empty tiles: ", empty_tiles, "and flags: ", flags)
-                    Click(empty_tiles_coordinates, "right")
-                elif empty_tiles == 1 and flags == 2:
-                    print("Empty tiles: ", empty_tiles, "and flags: ", flags)
-                    Click(empty_tiles_coordinates, "right")
-                    
-            elif tiles[i][j] == 3:
-                # run trough each element next to the current
-                empty_tiles, empty_tiles_coordinates, flags = AdjacentElements(i, j)
-                
-                if flags == 4:
-                    Click(empty_tiles_coordinates, "left")
-                
-                if empty_tiles == 4 and flags == 0:
-                    print("Empty tiles: ", empty_tiles, "and flags: ", flags)
-                    Click(empty_tiles_coordinates, "right")
-                elif empty_tiles == 3 and flags == 1:
-                    print("Empty tiles: ", empty_tiles, "and flags: ", flags)
-                    Click(empty_tiles_coordinates, "right")
-                elif empty_tiles == 2 and flags == 2:
-                    print("Empty tiles: ", empty_tiles, "and flags: ", flags)
-                    Click(empty_tiles_coordinates, "right")
-                elif empty_tiles == 1 and flags == 3:
-                    print("Empty tiles: ", empty_tiles, "and flags: ", flags)
-                    Click(empty_tiles_coordinates, "right")
+            number = tiles[i][j]
+            if number != 0 and number != 10 and number != 11:
+                ProcessTile(i, j, tiles[i][j])
       
 def AdjacentElements(i, j):
     empty_tiles = 0
@@ -176,9 +120,19 @@ def Click(empty_tiles_coordinates, click):
                 pyautogui.leftClick()
                 tiles[current_coordinates[0]][current_coordinates[1]] = 10
 
+def ProcessTile(i, j, number):
+    empty_tiles, empty_tiles_coordinates, flags = AdjacentElements(i, j)
+
+    if flags == number:
+        Click(empty_tiles_coordinates, "left")
+
+    if empty_tiles == number and flags == 0:
+        Click(empty_tiles_coordinates, "right")
+    elif empty_tiles + flags == number:
+        Click(empty_tiles_coordinates, "right")
 
 def __main__():
-    TakeIamge()
+    TakeImage()
     MakeMove()
 
 isRunning = True
